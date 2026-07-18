@@ -137,6 +137,19 @@ class TestDistributedNNFunctions(MultiProcessTestCase):
         elif self.rank == 0:
             self.assertEqual(x.grad, torch.zeros(5, 5, device=device))
 
+    def _test_broadcast_subgroup(self, backend):
+        store = c10d.FileStore(self.file_name, self.world_size)
+        c10d.init_process_group(
+            store=store, rank=self.rank, world_size=self.world_size, backend=backend
+        )
+        subgroup = c10d.new_group(ranks=[1])
+
+        if self.rank == 1:
+            x = torch.ones(5, 5, requires_grad=True)
+            y = torch.distributed.nn.functional.broadcast(x, 1, group=subgroup)
+            y.sum().backward()
+            self.assertEqual(x.grad, torch.ones_like(x))
+
     def _test_reduce(self, backend):
         store = c10d.FileStore(self.file_name, self.world_size)
         # This is required because these functions calls directly to the .dist and needs

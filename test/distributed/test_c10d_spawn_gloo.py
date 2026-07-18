@@ -137,6 +137,13 @@ if not TEST_WITH_DEV_DBG_ASAN:
             self._test_broadcast("gloo")
 
         @requires_gloo()
+        @skip_but_pass_in_sandcastle_if(
+            not _torch_dist_nn_available, "torch.distributed.nn is not available"
+        )
+        def test_broadcast_subgroup(self):
+            self._test_broadcast_subgroup("gloo")
+
+        @requires_gloo()
         @skip_if_lt_x_gpu(2)
         @skip_but_pass_in_sandcastle_if(
             not _torch_dist_nn_available, "torch.distributed.nn is not available"
